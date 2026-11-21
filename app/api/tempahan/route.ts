@@ -31,6 +31,15 @@ function handleDatabaseError(error: unknown, fallbackMessage: string) {
 }
 
 export async function GET() {
+  if (!process.env.DATABASE_URL) {
+    return NextResponse.json(
+      {
+        error:
+          "Sambungan pangkalan data belum dikonfigurasi (DATABASE_URL tiada).",
+      },
+      { status: 503 }
+    );
+  }
   try {
     const records = await prisma.tempahan.findMany({
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
@@ -42,6 +51,15 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  if (!process.env.DATABASE_URL) {
+    return NextResponse.json(
+      {
+        error:
+          "Sambungan pangkalan data belum dikonfigurasi (DATABASE_URL tiada).",
+      },
+      { status: 503 }
+    );
+  }
   let body: unknown;
   try {
     body = await req.json();

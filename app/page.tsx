@@ -36,6 +36,20 @@ import { ToastMessage, ToastStack } from "@/components/ToastStack";
 
 type CategoryFilter = "Semua" | "Ruang" | "Peralatan";
 
+async function parseApiResponse(res: Response): Promise<{ data?: unknown; error?: string; message?: string }> {
+  const text = await res.text();
+  if (!text) {
+    return {};
+  }
+  try {
+    return JSON.parse(text) as { data?: unknown; error?: string; message?: string };
+  } catch {
+    throw new Error(
+      `Pelayan memulangkan respons bukan JSON (HTTP ${res.status}). Sila semak konfigurasi pelayan dan sambungan pangkalan data.`
+    );
+  }
+}
+
 export default function ResourceBookingDashboard() {
   const [bookings, setBookings] = useState<TempahanRecord[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -80,11 +94,11 @@ export default function ResourceBookingDashboard() {
     setFetchError(null);
     try {
       const res = await fetch("/api/tempahan", { cache: "no-store" });
-      const json = await res.json();
+      const json = await parseApiResponse(res);
       if (!res.ok) {
         throw new Error(json?.error || "Gagal memuat turun rekod tempahan.");
       }
-      setBookings(Array.isArray(json.data) ? json.data : []);
+      setBookings(Array.isArray(json.data) ? (json.data as TempahanRecord[]) : []);
     } catch (err) {
       const message =
         err instanceof Error
@@ -101,12 +115,12 @@ export default function ResourceBookingDashboard() {
     async function fetchInitial() {
       try {
         const res = await fetch("/api/tempahan", { cache: "no-store" });
-        const json = await res.json();
+        const json = await parseApiResponse(res);
         if (!res.ok) {
           throw new Error(json?.error || "Gagal memuat turun rekod tempahan.");
         }
         if (!cancelled) {
-          setBookings(Array.isArray(json.data) ? json.data : []);
+          setBookings(Array.isArray(json.data) ? (json.data as TempahanRecord[]) : []);
           setFetchError(null);
         }
       } catch (err) {
@@ -243,12 +257,12 @@ export default function ResourceBookingDashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const json = await res.json();
+      const json = await parseApiResponse(res);
       if (!res.ok) {
         throw new Error(json?.error || "Gagal menyimpan tempahan.");
       }
 
-      const saved: TempahanRecord = json.data;
+      const saved = json.data as TempahanRecord;
       if (isEdit) {
         setBookings((prev) =>
           prev.map((item) => (item.id === saved.id ? saved : item))
@@ -289,11 +303,11 @@ export default function ResourceBookingDashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: nextStatus }),
       });
-      const json = await res.json();
+      const json = await parseApiResponse(res);
       if (!res.ok) {
         throw new Error(json?.error || "Gagal mengemas kini status tempahan.");
       }
-      const updated: TempahanRecord = json.data;
+      const updated = json.data as TempahanRecord;
       setBookings((prev) =>
         prev.map((item) => (item.id === updated.id ? updated : item))
       );
@@ -319,7 +333,7 @@ export default function ResourceBookingDashboard() {
       const res = await fetch(`/api/tempahan/${id}`, {
         method: "DELETE",
       });
-      const json = await res.json();
+      const json = await parseApiResponse(res);
       if (!res.ok) {
         throw new Error(json?.error || "Gagal memadam rekod tempahan.");
       }

@@ -51,6 +51,15 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!process.env.DATABASE_URL) {
+    return NextResponse.json(
+      {
+        error:
+          "Sambungan pangkalan data belum dikonfigurasi (DATABASE_URL tiada).",
+      },
+      { status: 503 }
+    );
+  }
   const { id } = await params;
   const numericId = parseId(id);
   if (numericId === null) {
@@ -163,6 +172,15 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!process.env.DATABASE_URL) {
+    return NextResponse.json(
+      {
+        error:
+          "Sambungan pangkalan data belum dikonfigurasi (DATABASE_URL tiada).",
+      },
+      { status: 503 }
+    );
+  }
   const { id } = await params;
   const numericId = parseId(id);
   if (numericId === null) {
