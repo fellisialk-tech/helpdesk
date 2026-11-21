@@ -1,0 +1,6 @@
+{
+  "name": "Resource Booking System",
+  "description": "Sistem Tempahan Ruang & Peralatan — Campus room and equipment booking management dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
